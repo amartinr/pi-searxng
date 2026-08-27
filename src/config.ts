@@ -3,37 +3,33 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 
 /**
- * Resolves the home directory in a robust way.
+ * Resolves the pi coding agent directory in a robust way.
  * Prioritizes PI_CODING_AGENT_DIR (if it points to an agent directory),
  * then HOME, and finally homedir() as a last resort.
  */
-function resolveHomeDir(): string {
-  // PI_CODING_AGENT_DIR might be the full agent directory
+function resolveAgentDir(): string {
+  // PI_CODING_AGENT_DIR is the full agent directory
   const piDir = process.env.PI_CODING_AGENT_DIR;
   if (piDir) {
-    // Strip trailing "/agent" or "\agent" (cross-platform)
-    const base = piDir.replace(/[/\\]agent$/, "");
     // Expand ~ to actual home directory (handles both ~/ and ~\)
-    if (base.startsWith("~/") || base.startsWith("~\\")) {
-      return join(homedir(), base.slice(2));
+    if (piDir.startsWith("~/") || piDir.startsWith("~\\")) {
+      return join(homedir(), piDir.slice(2));
     }
-    return base;
+    return piDir;
   }
   // Fallback: HOME env var or homedir()
   const hd = homedir();
   if (process.env.HOME) {
-    return process.env.HOME;
+    return join(process.env.HOME, ".pi", "agent");
   }
   if (hd) {
-    return hd;
+    return join(hd, ".pi", "agent");
   }
-  return "/";
+  return join("/", ".pi", "agent");
 }
 
 const CONFIG_PATH = join(
-  resolveHomeDir(),
-  ".pi",
-  "agent",
+  resolveAgentDir(),
   "extensions",
   "pi-searxng",
   "config.json"
